@@ -13,7 +13,7 @@ def label_tree(tree):
     s_index = 0
     s_found = False
     for i, n in enumerate(tree.leaves()):
-        if n.identifier == "s":
+        if n.identifier == 's':
             s_found = True
         if s_found:
             n.tag = str(label)
@@ -43,21 +43,29 @@ def label_tree(tree):
                     n.tag = str(int(np.median([int(c.tag) for c in children])))
 
 
-tree = Tree()
+# def rectilinear_embedding(tree):
+#     embedding = dict()
+#     n = tree.get_node('s')
+#     other_nodes = [n for n in tree.all_nodes() if n.identifier != 's']
+#     embedding[n.identifier] = np.array([2*int(n.tag), 0])
+#     for n in other_nodes:
+#         embedding[n.identifier]
 
-tree.create_node("r", "r")
-tree.create_node("a", "a", parent="r")
-tree.create_node("b", "b", parent="r")
-tree.create_node("c", "c", parent="a")
-tree.create_node("d", "d", parent="a")
-tree.create_node("e", "e", parent="a")
-tree.create_node("s", "s", parent="r")
-tree.create_node("f", "f", parent="b")
-tree.create_node("g", "g", parent="b")
-tree.create_node("h", "h", parent="b")
-tree.create_node("z", "z", parent="r")
-tree.create_node("x", "x", parent="z")
-tree.create_node("y", "y", parent="z")
+
+tree = Tree()
+tree.create_node('s', 's')
+tree.create_node('r', 'r', parent='s')
+tree.create_node('a', 'a', parent='r')
+tree.create_node('b', 'b', parent='r')
+tree.create_node('c', 'c', parent='a')
+tree.create_node('d', 'd', parent='a')
+tree.create_node('e', 'e', parent='a')
+tree.create_node('f', 'f', parent='b')
+tree.create_node('g', 'g', parent='b')
+tree.create_node('h', 'h', parent='b')
+tree.create_node('z', 'z', parent='r')
+tree.create_node('x', 'x', parent='z')
+tree.create_node('y', 'y', parent='z')
 
 tree.show()
 label_tree(tree)
