@@ -36,20 +36,40 @@ def label_tree(tree):
         for n in nodes:
             children = tree.children(n.identifier)
             if len(children) > 0:
-                print(children)
                 if len(children) <= 2:
                     n.tag = str(max([int(c.tag) for c in children]))
                 else:
                     n.tag = str(int(np.median([int(c.tag) for c in children])))
 
 
-# def rectilinear_embedding(tree):
-#     embedding = dict()
-#     n = tree.get_node('s')
-#     other_nodes = [n for n in tree.all_nodes() if n.identifier != 's']
-#     embedding[n.identifier] = np.array([2*int(n.tag), 0])
-#     for n in other_nodes:
-#         embedding[n.identifier]
+def rectilinear_embedding(tree):
+    # The embedding works in the following way.
+    # Put the vertex s at the coordinate (2n(s), 0).
+    # Let v be any other vertex. Suppose the parent of v, say u,
+    # has been placed at (Xu, Yu). We place v at (Xv, Yv), where
+    # Xv = Xu + 2 (n(u) − n(v)), and Yv = Yu + 2 (N − |n(u) − n(v)|).
+    embedding = dict()
+    n = tree.get_node('s')
+    embedding[n.identifier] = np.array([2*int(n.tag), 0])
+    for level in range(1, tree.depth() + 1):
+        nodes = list(tree.filter_nodes(lambda x: tree.depth(x) == level))
+        for n in nodes:
+            parent_id = n.predecessor(tree.identifier)
+            parent_node = tree.get_node(parent_id)
+            X_u = embedding[parent_id][0]
+            Y_u = embedding[parent_id][1]
+            embedding[n.identifier] = np.array([
+                X_u + 2*(int(parent_node.tag) - int(n.tag)),
+                Y_u + 2*(tree.size() - abs(int(parent_node.tag) - int(n.tag)))
+            ])
+
+    # The edges are mapped to paths parallel to axis.
+    # We draw the edge between u and v as follows. Draw a
+    # line of length (N − |n(u) − n(v)|) in the positive
+    # Y direction from u and then a line of length 2|n(u)−n(v)|
+    # in the positive/negative direction of X axis,
+    # according to the positive/negative values of n(u) − n(v). By
+    # construction this embedding is indeed a rectilinear embedding.
 
 
 tree = Tree()
@@ -70,3 +90,4 @@ tree.create_node('y', 'y', parent='z')
 tree.show()
 label_tree(tree)
 tree.show()
+rectilinear_embedding(tree)
