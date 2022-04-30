@@ -1,7 +1,9 @@
 # import numpy as np
 
+import matplotlib.pyplot as plt
 import numpy as np
 
+from pprint import pprint
 from treelib import Tree
 
 
@@ -49,8 +51,20 @@ def rectilinear_embedding(tree):
     # has been placed at (Xu, Yu). We place v at (Xv, Yv), where
     # Xv = Xu + 2 (n(u) − n(v)), and Yv = Yu + 2 (N − |n(u) − n(v)|).
     embedding = dict()
+    N = tree.size()
     n = tree.get_node('s')
     embedding[n.identifier] = np.array([2*int(n.tag), 0])
+    segments_X = []
+    segments_Y = []
+    # The edges are mapped to paths parallel to axis.
+    # We draw the edge between u and v as follows. Draw a
+    # line of length (N − |n(u) − n(v)|) in the positive
+    # NOTE: is this an error? Should not be 2*(N - |n(u) - n(v)|
+
+    # Y direction from u and then a line of length 2|n(u)−n(v)|
+    # in the positive/negative direction of X axis,
+    # according to the positive/negative values of n(u) − n(v). By
+    # construction this embedding is indeed a rectilinear embedding.
     for level in range(1, tree.depth() + 1):
         nodes = list(tree.filter_nodes(lambda x: tree.depth(x) == level))
         for n in nodes:
@@ -60,16 +74,40 @@ def rectilinear_embedding(tree):
             Y_u = embedding[parent_id][1]
             embedding[n.identifier] = np.array([
                 X_u + 2*(int(parent_node.tag) - int(n.tag)),
-                Y_u + 2*(tree.size() - abs(int(parent_node.tag) - int(n.tag)))
+                Y_u + 2*(N - abs(int(parent_node.tag) - int(n.tag)))
             ])
-
-    # The edges are mapped to paths parallel to axis.
-    # We draw the edge between u and v as follows. Draw a
-    # line of length (N − |n(u) − n(v)|) in the positive
-    # Y direction from u and then a line of length 2|n(u)−n(v)|
-    # in the positive/negative direction of X axis,
-    # according to the positive/negative values of n(u) − n(v). By
-    # construction this embedding is indeed a rectilinear embedding.
+            for v in range(2*(N - abs(int(parent_node.tag) - int(n.tag)))):
+                segments_X.append((
+                    X_u, X_u
+                ))
+                segments_Y.append((
+                    Y_u + v,
+                    Y_u + v + 1
+                ))
+            for v in range(2*abs(int(parent_node.tag) - int(n.tag))):
+                if int(parent_node.tag) - int(n.tag) > 0:
+                    segments_X.append((
+                        X_u + v,
+                        X_u + v + 1
+                    ))
+                else:
+                    segments_X.append((
+                        X_u - v,
+                        X_u - v - 1
+                    ))
+                segments_Y.append((
+                    Y_u + 2*(N - abs(int(parent_node.tag) - int(n.tag))),
+                    Y_u + 2*(N - abs(int(parent_node.tag) - int(n.tag)))
+                ))
+    plt.grid(color='b', linestyle='-', linewidth=0.5)
+    plt.xticks([X[0] for X in segments_X])
+    for X, Y in zip(segments_X, segments_Y):
+        plt.plot(X, Y, 'ro-', markersize=3)
+    print('EMBEDDING AS DICTIONARY:')
+    pprint(embedding)
+    for e in embedding:
+        plt.text(embedding[e][0], embedding[e][1], e)
+    plt.show()
 
 
 tree = Tree()
